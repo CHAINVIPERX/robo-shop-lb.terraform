@@ -176,7 +176,7 @@ resource "null_resource" "rabbitmq" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/bootstrap.sh",
-      "sudo sh /tmp/bootstrap.sh mysql dev"
+      "sudo sh /tmp/bootstrap.sh rabbitmq dev"
     ]
 
   }
