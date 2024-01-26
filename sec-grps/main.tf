@@ -19,6 +19,17 @@ module "app_lb" {
 }
 
 
+module "web_lb" {
+  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  project_name   = var.project_name
+  environment    = var.environment
+  sg_description = "SG for WEB LB"
+  vpc_id         = data.aws_ssm_parameter.vpc_id.value
+  sg_name        = "web-lb"
+  #sg_ingress_rules = var.mongodb_sg_ingress_rules
+}
+
+
 module "mongodb" {
   source         = "../../concepts/TERRAFORM/TF-AWS-SG"
   project_name   = var.project_name
@@ -113,6 +124,39 @@ module "web" {
   sg_description = "description"
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
+
+resource "aws_security_group_rule" "app_lb_vpn" {
+  source_security_group_id = module.vpn.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+resource "aws_security_group_rule" "app_lb_web" {
+  source_security_group_id = module.web.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+resource "aws_security_group_rule" "web_lb_internet" {
+  cidr_blocks = ["0.0.0.0/0"]
+  type        = "ingress"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.web_lb.sg_id
+}
+
 
 resource "aws_security_group_rule" "vpn_local" {
   security_group_id = module.vpn.sg_id
@@ -228,6 +272,17 @@ resource "aws_security_group_rule" "catalogue_vpn" {
   security_group_id        = module.catalogue.sg_id
 }
 
+
+resource "aws_security_group_rule" "catalogue_vpn_http" {
+  source_security_group_id = module.vpn.sg_id
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = module.catalogue.sg_id
+}
+
+
 # resource "aws_security_group_rule" "catalogue_web" {
 #   source_security_group_id = module.web.sg_id
 #   type                     = "ingress"
@@ -236,6 +291,8 @@ resource "aws_security_group_rule" "catalogue_vpn" {
 #   protocol                 = "tcp"
 #   security_group_id        = module.catalogue.sg_id
 # }
+
+
 
 resource "aws_security_group_rule" "catalogue_app_lb" {
   source_security_group_id = module.app_lb.sg_id

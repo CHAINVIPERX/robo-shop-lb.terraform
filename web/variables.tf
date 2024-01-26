@@ -10,12 +10,18 @@ variable "common_tags" {
   default = {
     Project     = "roboshop"
     Environment = "tf"
-
   }
+}
+
+variable "zone_name" {
+  default = "ladoo.shop"
 
 }
 
-output "vpn_public_ip" {
-  value = module.vpn.public_ip
+variable "tags" {
+
+  default = {
+    component = "web"
+  }
 
 }

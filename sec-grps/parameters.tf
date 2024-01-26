@@ -83,3 +83,10 @@ resource "aws_ssm_parameter" "app_lb_sg_id" {
   value = module.app_lb.sg_id
 
 }
+
+resource "aws_ssm_parameter" "web_lb_sg_id" {
+  name  = "/${var.project_name}/${var.environment}/web_lb_sg_id"
+  type  = "String"
+  value = module.web_lb.sg_id
+
+}
