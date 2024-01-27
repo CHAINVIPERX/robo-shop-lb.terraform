@@ -1,6 +1,6 @@
 module "robo-vpc" {
-  #source = "../../concepts/TERRAFORM/TF-AWS-VPC/VPC-MODULE"
-  #source                = "git::github.com/CHAINVIPERX/concepts//TERRAFORM/TF-AWS-VPC/VPC-MODULE?ref=main"
+  #source = "../../concepts/TERRAFORM/dev-AWS-VPC/VPC-MODULE"
+  #source                = "git::github.com/CHAINVIPERX/concepts//TERRAFORM/dev-AWS-VPC/VPC-MODULE?ref=main"
   source                = "../VPC-MODULE"
   project_name          = var.project_name
   environment           = var.environment

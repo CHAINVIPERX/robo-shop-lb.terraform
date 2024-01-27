@@ -4,7 +4,7 @@ variable "cidr_block" {
 variable "common_tags" {
   default = {
     Project     = "roboshop"
-    Environment = "tf"
+    Environment = "dev"
     Terraform   = "True"
   }
 }
@@ -17,7 +17,7 @@ variable "project_name" {
   default = "roboshop"
 }
 variable "environment" {
-  default = "tf"
+  default = "dev"
 }
 
 variable "public_subnets_cidr" {

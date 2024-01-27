@@ -3,13 +3,13 @@ variable "project_name" {
 }
 
 variable "environment" {
-  default = "tf"
+  default = "dev"
 }
 
 variable "common_tags" {
   default = {
     Project     = "roboshop"
-    Environment = "tf"
+    Environment = "dev"
   }
 }
 

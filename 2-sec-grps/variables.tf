@@ -1,7 +1,7 @@
 variable "common_tags" {
   default = {
     Project     = "roboshop"
-    Environment = "using TF"
+    Environment = "dev"
   }
 }
 
@@ -13,7 +13,7 @@ variable "sg_tags" {
 
 }
 variable "environment" {
-  default = "tf"
+  default = "dev"
 
 }
 
