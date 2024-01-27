@@ -2,11 +2,11 @@
 
 module "catalogue" {
   source               = "../APP-MODULE"
-  vpc_id               = var.vpc_id
-  component_sg_id      = var.catalogue_sg_id
+  vpc_id               = data.vpc_id.value
+  component_sg_id      = data.catalogue_sg_id.value
+  app_lb_listener_arn  = data.app_lb_listener_arn.value
   private_subnet_ids   = local.private_subnet_ids
   iam_instance_profile = "instance_creation_shell"
-  app_lb_listener_arn  = var.app_lb_listener_arn
   project_name         = var.project_name
   environment          = var.environment
   common_tags          = var.common_tags
