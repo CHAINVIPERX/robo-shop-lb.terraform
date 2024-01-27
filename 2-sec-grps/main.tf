@@ -1,5 +1,5 @@
 module "vpn" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_vpc.default.id
@@ -9,7 +9,7 @@ module "vpn" {
 }
 
 module "app_lb" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   sg_description = "SG for APP LB"
@@ -20,7 +20,7 @@ module "app_lb" {
 
 
 module "web_lb" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   sg_description = "SG for WEB LB"
@@ -31,7 +31,7 @@ module "web_lb" {
 
 
 module "mongodb" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -41,7 +41,7 @@ module "mongodb" {
 }
 
 module "catalogue" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -51,7 +51,7 @@ module "catalogue" {
 }
 
 module "user" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -61,7 +61,7 @@ module "user" {
 }
 
 module "redis" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -71,7 +71,7 @@ module "redis" {
 }
 
 module "mysql" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -80,7 +80,7 @@ module "mysql" {
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
 module "rabbitmq" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -89,7 +89,7 @@ module "rabbitmq" {
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
 module "cart" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -98,7 +98,7 @@ module "cart" {
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
 module "shipping" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -107,7 +107,7 @@ module "shipping" {
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
 module "payment" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -116,7 +116,7 @@ module "payment" {
   #sg_ingress_rules = var.mongodb_sg_ingress_rules
 }
 module "web" {
-  source         = "../../concepts/TERRAFORM/TF-AWS-SG"
+  source         = "../SG-MODULE"
   project_name   = var.project_name
   environment    = var.environment
   vpc_id         = data.aws_ssm_parameter.vpc_id.value
@@ -135,6 +135,64 @@ resource "aws_security_group_rule" "app_lb_vpn" {
   #cidr_blocks = ["0.0.0.0/0"]
   security_group_id = module.app_lb.sg_id
 }
+
+resource "aws_security_group_rule" "app_lb_user" {
+  source_security_group_id = module.user.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+resource "aws_security_group_rule" "app_lb_catalogue" {
+  source_security_group_id = module.catalogue.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+resource "aws_security_group_rule" "app_lb_cart" {
+  source_security_group_id = module.cart.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+
+resource "aws_security_group_rule" "app_lb_shipping" {
+  source_security_group_id = module.shipping.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+resource "aws_security_group_rule" "app_lb_payment" {
+  source_security_group_id = module.payment.sg_id
+
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  #cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = module.app_lb.sg_id
+}
+
+
 
 resource "aws_security_group_rule" "app_lb_web" {
   source_security_group_id = module.web.sg_id
@@ -360,8 +418,17 @@ resource "aws_security_group_rule" "cart_vpn" {
   security_group_id        = module.cart.sg_id
 }
 
-resource "aws_security_group_rule" "cart_web" {
-  source_security_group_id = module.web.sg_id
+# resource "aws_security_group_rule" "cart_web" {
+#   source_security_group_id = module.web.sg_id
+#   type                     = "ingress"
+#   from_port                = 8080
+#   to_port                  = 8080
+#   protocol                 = "tcp"
+#   security_group_id        = module.cart.sg_id
+# }
+
+resource "aws_security_group_rule" "cart_app_lb" {
+  source_security_group_id = module.app_lb.sg_id
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
@@ -396,14 +463,24 @@ resource "aws_security_group_rule" "shipping_vpn" {
   security_group_id        = module.shipping.sg_id
 }
 
-resource "aws_security_group_rule" "shipping_web" {
-  source_security_group_id = module.web.sg_id
+# resource "aws_security_group_rule" "shipping_web" {
+#   source_security_group_id = module.web.sg_id
+#   type                     = "ingress"
+#   from_port                = 8080
+#   to_port                  = 8080
+#   protocol                 = "tcp"
+#   security_group_id        = module.shipping.sg_id
+# }
+
+resource "aws_security_group_rule" "shipping_app_lb" {
+  source_security_group_id = module.app_lb.sg_id
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
   security_group_id        = module.shipping.sg_id
 }
+
 
 resource "aws_security_group_rule" "payment_vpn" {
   source_security_group_id = module.vpn.sg_id
@@ -414,14 +491,25 @@ resource "aws_security_group_rule" "payment_vpn" {
   security_group_id        = module.payment.sg_id
 }
 
-resource "aws_security_group_rule" "payment_web" {
-  source_security_group_id = module.web.sg_id
+# resource "aws_security_group_rule" "payment_web" {
+#   source_security_group_id = module.web.sg_id
+#   type                     = "ingress"
+#   from_port                = 8080
+#   to_port                  = 8080
+#   protocol                 = "tcp"
+#   security_group_id        = module.payment.sg_id
+# }
+
+resource "aws_security_group_rule" "payment_app_lb" {
+  source_security_group_id = module.app_lb.sg_id
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
   security_group_id        = module.payment.sg_id
 }
+
+
 
 resource "aws_security_group_rule" "web_vpn" {
   source_security_group_id = module.vpn.sg_id

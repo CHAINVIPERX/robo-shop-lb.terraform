@@ -1,6 +1,6 @@
-resource "aws_lb_target_group" "catalogue" {
+resource "aws_lb_target_group" "web" {
   name                 = "${local.name}-${var.tags.component}"
-  port                 = 8080
+  port                 = 80
   protocol             = "HTTP"
   vpc_id               = data.aws_ssm_parameter.vpc_id.value
   deregistration_delay = 60
@@ -10,18 +10,18 @@ resource "aws_lb_target_group" "catalogue" {
     unhealthy_threshold = 3
     timeout             = 5
     path                = "/health"
-    port                = 8080
+    port                = 80
     matcher             = "200-299"
   }
 }
 
 
-module "catalogue" {
+module "web" {
   source                 = "terraform-aws-modules/ec2-instance/aws"
   name                   = "${local.name}-${var.tags.component}-ami"
   ami                    = data.aws_ami.centos8.id
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [data.aws_ssm_parameter.catalogue_sg_id.value]
+  vpc_security_group_ids = [data.aws_ssm_parameter.web_sg_id.value]
   subnet_id              = element(split(",", data.aws_ssm_parameter.private_subnet_ids.value), 0)
   iam_instance_profile   = "instance_creation_shell"
   tags = merge(
@@ -29,14 +29,14 @@ module "catalogue" {
 }
 
 
-resource "null_resource" "catalogue" {
+resource "null_resource" "web" {
 
   triggers = {
-    insance_id = module.catalogue.id
+    insance_id = module.web.id
   }
 
   connection {
-    host     = module.catalogue.private_ip
+    host     = module.web.private_ip
     type     = "ssh"
     user     = "centos"
     password = "DevOps321"
@@ -51,47 +51,47 @@ resource "null_resource" "catalogue" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/bootstrap.sh",
-      "sudo sh /tmp/bootstrap.sh catalogue dev"
+      "sudo sh /tmp/bootstrap.sh web dev"
     ]
 
   }
 }
 
-resource "aws_ec2_instance_state" "catalogue" {
-  instance_id = module.catalogue.id
+resource "aws_ec2_instance_state" "web" {
+  instance_id = module.web.id
   state       = "stopped"
-  depends_on  = [null_resource.catalogue]
+  depends_on  = [null_resource.web]
 
 }
 
-resource "aws_ami_from_instance" "catalogue_ami" {
+resource "aws_ami_from_instance" "web_ami" {
   name               = "${local.name}-${var.tags.component}-${local.time}"
-  source_instance_id = module.catalogue.id
-  depends_on         = [aws_ec2_instance_state.catalogue]
+  source_instance_id = module.web.id
+  depends_on         = [aws_ec2_instance_state.web]
 
 }
 
 
-resource "null_resource" "catalogue_delete" {
+resource "null_resource" "web_delete" {
   triggers = {
-    instance_id = module.catalogue.id
+    instance_id = module.web.id
   }
 
   provisioner "local-exec" {
-    command = "aws ec2 terminate-instances --instance-ids ${module.catalogue.id}"
+    command = "aws ec2 terminate-instances --instance-ids ${module.web.id}"
   }
 
-  depends_on = [aws_ami_from_instance.catalogue_ami]
+  depends_on = [aws_ami_from_instance.web_ami]
 }
 
 
-resource "aws_launch_template" "catalogue_template" {
+resource "aws_launch_template" "web_template" {
   name = "${local.name}-${var.tags.component}"
 
-  image_id                             = aws_ami_from_instance.catalogue_ami.id
+  image_id                             = aws_ami_from_instance.web_ami.id
   instance_initiated_shutdown_behavior = "terminate"
   instance_type                        = "t2.micro"
-  vpc_security_group_ids               = [data.aws_ssm_parameter.catalogue_sg_id.value]
+  vpc_security_group_ids               = [data.aws_ssm_parameter.web_sg_id.value]
   update_default_version               = true
   tag_specifications {
     resource_type = "instance"
@@ -102,7 +102,7 @@ resource "aws_launch_template" "catalogue_template" {
 }
 
 
-resource "aws_autoscaling_group" "catalogue" {
+resource "aws_autoscaling_group" "web" {
 
   name                      = "${local.name}-${var.tags.component}"
   max_size                  = 3
@@ -111,10 +111,10 @@ resource "aws_autoscaling_group" "catalogue" {
   health_check_type         = "ELB"
   desired_capacity          = 2
   vpc_zone_identifier       = split(",", data.aws_ssm_parameter.private_subnet_ids.value)
-  target_group_arns         = [aws_lb_target_group.catalogue.arn]
+  target_group_arns         = [aws_lb_target_group.web.arn]
   launch_template {
-    id      = aws_launch_template.catalogue_template.id
-    version = aws_launch_template.catalogue_template.latest_version
+    id      = aws_launch_template.web_template.id
+    version = aws_launch_template.web_template.latest_version
   }
 
   instance_refresh {
@@ -137,25 +137,25 @@ resource "aws_autoscaling_group" "catalogue" {
 
 
 
-resource "aws_lb_listener_rule" "catalogue" {
-  listener_arn = data.aws_ssm_parameter.app_lb_listener_arn.value
+resource "aws_lb_listener_rule" "web" {
+  listener_arn = data.aws_ssm_parameter.web_lb_listener_arn.value
   priority     = 10
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.catalogue.arn
+    target_group_arn = aws_lb_target_group.web.arn
   }
 
   condition {
     host_header {
-      values = ["${var.tags.component}.app-${var.environment}.${var.zone_name}"]
+      values = ["${var.tags.component}-${var.environment}.${var.zone_name}"]
     }
   }
 }
 
 
-resource "aws_autoscaling_policy" "catalogue" {
-  autoscaling_group_name = aws_autoscaling_group.catalogue.name
+resource "aws_autoscaling_policy" "web" {
+  autoscaling_group_name = aws_autoscaling_group.web.name
   name                   = "${local.name}-${var.tags.component}"
   policy_type            = "TargetTrackingScaling"
 

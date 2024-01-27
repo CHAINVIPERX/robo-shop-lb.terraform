@@ -19,9 +19,26 @@ variable "zone_name" {
 }
 
 variable "tags" {
-
   default = {
-    component = "catalogue"
+    component = "payment"
   }
+}
+
+variable "vpc_id" {
+  default = data.vpc_id.value
+}
+
+variable "payment_sg_id" {
+  default = data.payment_sg_id.value
+}
+
+variable "app_lb_listener_arn" {
+
+  default = data.app_lb_listener_arn.value
 
 }
+
+# variable "ami_id" {
+#   default = data.centos8.id
+
+# }
