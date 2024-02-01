@@ -23,7 +23,11 @@ pipeline {
     options {
         timeout(time: 1, unit: 'HOURS')
         disableConcurrentBuilds()
-        ansiColor('xterm') }
+        ansiColor('xterm') 
+            }
+    parameters {
+        choice(name: 'action', choices: ['apply','destroy'],description:'Pick one')
+    }
 
     stages {
         stage('Initialization') {
@@ -43,6 +47,11 @@ pipeline {
             }
         }
         stage('Deploy'){
+            when{
+              
+                    "${params.action}"== 'apply'
+                }
+            }
             input{
                 message "Should Jenkins Continue?"
                 ok "Yes,You should."
